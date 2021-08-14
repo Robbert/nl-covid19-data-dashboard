@@ -1,4 +1,4 @@
-import { InternationalLayout } from '~/domain/layout/international-layout';
+import { InLayout } from '~/domain/layout/in-layout';
 import { Layout } from '~/domain/layout/layout';
 import { useIntl } from '~/intl';
 import { withFeatureNotFoundPage } from '~/lib/features';
@@ -9,7 +9,7 @@ import {
 import { getLastGeneratedDate } from '~/static-props/get-data';
 
 export const getStaticProps = withFeatureNotFoundPage(
-  'internationalPage',
+  'inHomePage',
   createGetStaticProps(getLastGeneratedDate)
 );
 
@@ -24,7 +24,7 @@ export default function InternationalPage(
       {...intl.siteText.internationaal_metadata}
       lastGenerated={lastGenerated}
     >
-      <InternationalLayout lastGenerated={lastGenerated} />
+      <InLayout lastGenerated={lastGenerated} />
     </Layout>
   );
 }

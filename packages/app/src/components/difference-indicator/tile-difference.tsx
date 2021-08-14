@@ -1,7 +1,7 @@
 import { DifferenceDecimal, DifferenceInteger } from '@corona-dashboard/common';
-import IconGelijk from '~/assets/gelijk.svg';
-import IconUp from '~/assets/pijl-omhoog.svg';
-import IconDown from '~/assets/pijl-omlaag.svg';
+import { ReactComponent as IconGelijk } from '~/assets/gelijk.svg';
+import { ReactComponent as IconUp } from '~/assets/pijl-omhoog.svg';
+import { ReactComponent as IconDown } from '~/assets/pijl-omlaag.svg';
 import { InlineText } from '~/components/typography';
 import { useIntl } from '~/intl';
 import { Container, IconContainer } from './containers';
@@ -11,11 +11,13 @@ export function TileDifference({
   isDecimal,
   staticTimespan,
   maximumFractionDigits,
+  isPercentage,
 }: {
   value: DifferenceDecimal | DifferenceInteger;
   isDecimal?: boolean;
   maximumFractionDigits?: number;
   staticTimespan?: string;
+  isPercentage?: boolean;
 }) {
   const { siteText, formatNumber, formatPercentage } = useIntl();
   const text = siteText.toe_en_afname;
@@ -40,7 +42,8 @@ export function TileDifference({
           <IconUp />
         </IconContainer>
         <InlineText fontWeight="bold">
-          {differenceFormattedString} {splitText[0]}
+          {differenceFormattedString}
+          {isPercentage ? '%' : ''} {splitText[0]}
         </InlineText>{' '}
         <InlineText color="annotation">
           {splitText[1]} {timespanTextNode}
@@ -58,7 +61,8 @@ export function TileDifference({
           <IconDown />
         </IconContainer>
         <InlineText fontWeight="bold">
-          {differenceFormattedString} {splitText[0]}
+          {differenceFormattedString}
+          {isPercentage ? '%' : ''} {splitText[0]}
         </InlineText>{' '}
         <InlineText>
           {splitText[1]} {timespanTextNode}
@@ -73,7 +77,8 @@ export function TileDifference({
         <IconGelijk />
       </IconContainer>
       <InlineText>
-        {text.gelijk} {timespanTextNode}
+        {text.gelijk}
+        {isPercentage ? '%' : ''} {timespanTextNode}
       </InlineText>
     </Container>
   );

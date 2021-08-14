@@ -2,7 +2,7 @@ import { TimelineEventConfig } from '../components/timeline';
 
 export interface DataOptions {
   valueAnnotation?: string;
-  forcedMaximumValue?: number;
+  forcedMaximumValue?: number | ((x: number) => number);
   isPercentage?: boolean;
   benchmark?: BenchmarkConfig;
   timespanAnnotations?: TimespanAnnotationConfig[];
@@ -16,7 +16,7 @@ export interface BenchmarkConfig {
 }
 
 export type TimespanAnnotationConfig = {
-  fill?: 'solid' | 'hatched';
+  fill?: 'solid' | 'hatched' | 'dotted';
   start: number;
   end: number;
   label: string;

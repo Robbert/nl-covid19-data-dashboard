@@ -15,17 +15,25 @@ import { GetStaticPropsContext } from 'next';
 import { AsyncWalkBuilder } from 'walkjs';
 import { gmData } from '~/data/gm';
 import { vrData } from '~/data/vr';
-import { CountryCode } from '~/domain/international/select-countries/country-code';
-import { MunicipalSideBarData } from '~/domain/layout/municipality-layout';
+import { CountryCode } from '~/domain/international/select-countries';
+import { GmSideBarData } from '~/domain/layout/gm-layout';
 import {
   NlPageMetricNames,
   nlPageMetricNames,
-} from '~/domain/layout/national-layout';
+} from '~/domain/layout/nl-layout';
 import {
   vrPageMetricNames,
   VrRegionPageMetricNames,
-} from '~/domain/layout/safety-region-layout';
+} from '~/domain/layout/vr-layout';
+import {
+  getVariantSidebarValue,
+  VariantSidebarValue,
+} from '~/domain/variants/static-props';
 import { getClient, localize } from '~/lib/sanity';
+import {
+  getSituationsSidebarValue,
+  SituationsSidebarValue,
+} from './situations/get-situations-sidebar-value';
 import { loadJsonFromDataFile } from './utils/load-json-from-data-file';
 
 /**
@@ -68,14 +76,13 @@ export function createGetContent<T>(
         : queryOrQueryGetter;
 
     const rawContent = (await client.fetch<T>(query)) ?? {};
-    //@TODO We need to switch this from process.env to context as soon as we use i18n routing
-    // const { locale } = context;
-    const locale = process.env.NEXT_PUBLIC_LOCALE || 'nl';
+
+    const { locale = 'nl' } = context;
 
     // this function call will mutate `rawContent`
     await replaceReferencesInContent(rawContent, client);
 
-    const content = localize(rawContent, [locale, 'nl']) as T;
+    const content = localize(rawContent, [locale]) as T;
     return { content };
   };
 }
@@ -153,7 +160,15 @@ export function selectNlData<T extends keyof Nl = never>(...metrics: T[]) {
            */
           data[p] ?? null
         ),
-      {} as Pick<Nl, T>
+      {
+        variantSidebarValue: getVariantSidebarValue(data.variants),
+        situationsSidebarValue: getSituationsSidebarValue(
+          json.vrCollection.situations
+        ),
+      } as {
+        variantSidebarValue: VariantSidebarValue;
+        situationsSidebarValue: SituationsSidebarValue;
+      } & Pick<Nl, T>
     );
 
     return { selectedNlData };
@@ -191,14 +206,20 @@ export function selectVrData<T extends keyof Vr = never>(...metrics: T[]) {
 
     const selectedVrData = metrics.reduce(
       (acc, p) => set(acc, p, vrData.data[p]),
-      {} as Pick<Vr, T>
+      {
+        situationsSidebarValue: getSituationsSidebarValue(
+          json.vrCollection.situations
+        ),
+      } as {
+        situationsSidebarValue: SituationsSidebarValue;
+      } & Pick<Vr, T>
     );
 
-    return { selectedVrData, safetyRegionName: vrData.safetyRegionName };
+    return { selectedVrData, vrName: vrData.vrName };
   };
 }
 
-export function getVrData(context: GetStaticPropsContext) {
+function getVrData(context: GetStaticPropsContext) {
   const code = context.params?.code as string | undefined;
 
   if (!code) {
@@ -207,17 +228,17 @@ export function getVrData(context: GetStaticPropsContext) {
 
   const data = loadAndSortVrData(code);
 
-  const safetyRegionName = getVrName(code);
+  const vrName = getVrName(code);
 
   return {
     data,
-    safetyRegionName,
+    vrName,
   };
 }
 
 export function getVrName(code: string) {
-  const safetyRegion = vrData.find((x) => x.code === code);
-  return safetyRegion?.name || '';
+  const vr = vrData.find((x) => x.code === code);
+  return vr?.name || '';
 }
 
 export function loadAndSortVrData(vrcode: string) {
@@ -248,7 +269,7 @@ export function selectGmData<T extends keyof Gm = never>(...metrics: T[]) {
   return (context: GetStaticPropsContext) => {
     const gmData = getGmData(context);
 
-    const sideBarData: MunicipalSideBarData = {
+    const sideBarData: GmSideBarData = {
       deceased_rivm: { last_value: gmData.data.deceased_rivm.last_value },
       hospital_nice: { last_value: gmData.data.hospital_nice.last_value },
       tested_overall: { last_value: gmData.data.tested_overall.last_value },
@@ -268,7 +289,7 @@ export function selectGmData<T extends keyof Gm = never>(...metrics: T[]) {
   };
 }
 
-export function getGmData(context: GetStaticPropsContext) {
+function getGmData(context: GetStaticPropsContext) {
   const code = context.params?.code as string | undefined;
 
   if (!code) {
@@ -310,9 +331,13 @@ export function getInData(countryCodes: CountryCode[]) {
   return function () {
     const internationalData: Record<string, In> = {};
     countryCodes.forEach((countryCode) => {
-      internationalData[countryCode] = loadJsonFromDataFile<In>(
+      const data = loadJsonFromDataFile<In>(
         `IN_${countryCode.toUpperCase()}.json`
       );
+
+      sortTimeSeriesInDataInPlace(data);
+
+      internationalData[countryCode] = data;
     });
     return { internationalData } as {
       internationalData: Record<CountryCode, In>;

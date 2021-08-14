@@ -5,12 +5,12 @@ import {
 } from '~/components/escalation-level-icon';
 import { Text } from '~/components/typography';
 import { getEscalationLevelIndexKey } from '~/domain/escalation-level/get-escalation-level-index-key';
-import { EscalationLevel } from '~/domain/restrictions/type';
+import { EscalationLevel } from '~/domain/restrictions/types';
 import { useIntl } from '~/intl';
 import { colors } from '~/style/theme';
 import { useEscalationColor } from '~/utils/use-escalation-color';
 
-export type EscalationLevelProps = {
+type EscalationLevelProps = {
   level: EscalationLevel;
   fontSize?: number;
   useLevelColor?: boolean;
@@ -60,28 +60,13 @@ export function EscalationLevelLabel({
     : 'inherit';
 
   return (
-    <Text as="span" fontWeight="bold" fontSize={fontSize} color={color}>
-      {siteText.escalatie_niveau.types[getEscalationLevelIndexKey(level)].titel}
-    </Text>
-  );
-}
-
-export function EscalationLevelInfo(props: EscalationLevelProps) {
-  const { level } = props;
-  const { siteText } = useIntl();
-
-  return (
-    <Box
-      display="flex"
-      flexDirection="row"
-      justifyContent="flex-start"
-      alignItems="center"
-      mt={1}
-    >
-      <Text as="span" marginLeft="0 !important" marginRight=".5em !important">
-        {siteText.escalatie_niveau.sidebar_label}
+    <Box color={color} fontSize={fontSize}>
+      <Text as="span" fontWeight="bold">
+        {
+          siteText.escalatie_niveau.types[getEscalationLevelIndexKey(level)]
+            .titel
+        }
       </Text>
-      <EscalationLevelInfoLabel level={level} />
     </Box>
   );
 }

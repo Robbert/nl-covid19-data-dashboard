@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { Box } from '~/components/base';
 import { InlineText } from '~/components/typography';
 import { VisuallyHidden } from '~/components/visually-hidden';
+import { spacingStyle } from '~/style/functions/spacing';
 import { colors } from '~/style/theme';
 import { SeriesConfig, useFormatSeriesValue } from '../../logic';
 import { SeriesIcon } from '../series-icon';
@@ -24,8 +25,9 @@ export function TooltipSeriesListItems<T extends TimestampedValue>({
   markNearestPointOnly,
   displayTooltipValueOnly,
   valueMinWidth,
+  metricPropertyFormatters,
 }: TooltipListOfSeriesProps<T>) {
-  const formatSeriesValue = useFormatSeriesValue();
+  const formatSeriesValue = useFormatSeriesValue(metricPropertyFormatters);
 
   const seriesConfig: SeriesConfig<T> = markNearestPointOnly
     ? [config[configIndex]]
@@ -52,9 +54,9 @@ export function TooltipSeriesListItems<T extends TimestampedValue>({
                 displayTooltipValueOnly={displayTooltipValueOnly}
                 isVisuallyHidden={x.isNonInteractive}
               >
-                <b css={css({ whiteSpace: 'nowrap' })}>
+                <span css={css({ whiteSpace: 'nowrap' })}>
                   {formatSeriesValue(value, x, options.isPercentage)}
-                </b>
+                </span>
               </TooltipListItem>
             );
 
@@ -66,13 +68,11 @@ export function TooltipSeriesListItems<T extends TimestampedValue>({
                 displayTooltipValueOnly={displayTooltipValueOnly}
                 isVisuallyHidden={x.isNonInteractive}
               >
-                <b>
-                  {formatSeriesValue(
-                    value,
-                    x,
-                    x.isPercentage ?? options.isPercentage
-                  )}
-                </b>
+                {formatSeriesValue(
+                  value,
+                  x,
+                  x.isPercentage ?? options.isPercentage
+                )}
               </TooltipListItem>
             );
 
@@ -91,7 +91,7 @@ export function TooltipSeriesListItems<T extends TimestampedValue>({
                 displayTooltipValueOnly={displayTooltipValueOnly}
                 isVisuallyHidden={x.isNonInteractive}
               >
-                <b>{formatSeriesValue(value, x, options.isPercentage)}</b>
+                {formatSeriesValue(value, x, options.isPercentage)}
               </TooltipListItem>
             );
 
@@ -104,7 +104,7 @@ export function TooltipSeriesListItems<T extends TimestampedValue>({
                 displayTooltipValueOnly={displayTooltipValueOnly}
                 isVisuallyHidden={x.isNonInteractive}
               >
-                <b>{formatSeriesValue(value, x, options.isPercentage)}</b>
+                {formatSeriesValue(value, x, options.isPercentage)}
               </TooltipListItem>
             );
         }
@@ -133,18 +133,12 @@ function TooltipListItem({
       {label}: {children}
     </VisuallyHidden>
   ) : (
-    <Box
-      as="li"
-      spacing={2}
-      spacingHorizontal
-      display="flex"
-      alignItems="stretch"
-    >
+    <Box as="li" spacingHorizontal={2} display="flex" alignItems="stretch">
       {displayTooltipValueOnly ? (
         <Box flexGrow={1}>
           <TooltipEntryContainer>
             <VisuallyHidden>
-              <InlineText mr={2}>{label}:</InlineText>
+              <InlineText>{label}:</InlineText>
             </VisuallyHidden>
             <TooltipEntryValue isCentered={displayTooltipValueOnly}>
               {children}
@@ -155,8 +149,7 @@ function TooltipListItem({
         <IconRow icon={icon}>
           <Box flexGrow={1}>
             <TooltipEntryContainer>
-              {/* <InlineText mr={2} style={{ whiteSpace: 'nowrap' }}> */}
-              <InlineText mr={2}>{label}:</InlineText>
+              <InlineText>{label}:</InlineText>
               <TooltipEntryValue isCentered={displayTooltipValueOnly}>
                 {children}
               </TooltipEntryValue>
@@ -168,18 +161,23 @@ function TooltipListItem({
   );
 }
 
-const TooltipEntryContainer = styled.span`
-  display: flex;
-  width: 100%;
-  justify-content: space-between;
-  align-items: flex-end;
-`;
+const TooltipEntryContainer = styled.span(
+  css({
+    display: 'flex',
+    width: '100%',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    ...spacingStyle(undefined, 2),
+  })
+);
 
 const TooltipEntryValue = styled.span<{
   isCentered?: boolean;
 }>((x) =>
   css({
     textAlign: x.isCentered ? 'center' : 'right',
+    width: x.isCentered ? '100%' : undefined,
+    fontWeight: 'bold',
   })
 );
 

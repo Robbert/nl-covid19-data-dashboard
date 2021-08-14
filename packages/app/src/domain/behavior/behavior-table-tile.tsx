@@ -4,11 +4,11 @@ import React, { useMemo } from 'react';
 import scrollIntoView from 'scroll-into-view-if-needed';
 import styled from 'styled-components';
 import { isDefined, isPresent } from 'ts-is-present';
-import ChevronIcon from '~/assets/chevron.svg';
+import { ReactComponent as ChevronIcon } from '~/assets/chevron.svg';
 import { Box } from '~/components/base';
+import { ChartTile } from '~/components/chart-tile';
 import { PercentageBar } from '~/components/percentage-bar';
-import { Tile } from '~/components/tile';
-import { Heading, InlineText, Text } from '~/components/typography';
+import { Anchor, InlineText, Text } from '~/components/typography';
 import { useIntl } from '~/intl';
 import { colors } from '~/style/theme';
 import { asResponsiveArray } from '~/style/utils';
@@ -28,6 +28,8 @@ interface BehaviorTableTileProps {
   scrollRef: { current: HTMLDivElement | null };
 }
 
+const trendColumnWidth = 125;
+
 export function BehaviorTableTile({
   title,
   description,
@@ -43,13 +45,9 @@ export function BehaviorTableTile({
   const behaviorsTableData = useBehaviorTableData(value);
 
   return (
-    <Tile>
-      <Heading level={3}>{title}</Heading>
-      <Box maxWidth="maxWidthText">
-        <Text mb={4}>{description}</Text>
-      </Box>
-      <Box display="flex" flexWrap="wrap" mb={{ _: 2, xs: 4 }}>
-        <Box mr={3} mb={1}>
+    <ChartTile title={title} description={description}>
+      <Box display="flex" flexWrap="wrap" spacing={2} spacingHorizontal={3}>
+        <Box>
           <ExplanationBox background={colors.data.cyan} />
           {complianceExplanation}
         </Box>
@@ -58,15 +56,17 @@ export function BehaviorTableTile({
           {supportExplanation}
         </Box>
       </Box>
-      <Box overflow="auto" mb={3}>
+      <Box overflow="auto">
         <StyledTable>
           <thead>
-            <tr>
+            <Row>
               <HeaderCell
                 css={css({
                   width: asResponsiveArray({
-                    _: 200,
+                    _: 'auto',
                     sm: 300,
+                    md: 'auto',
+                    lg: 300,
                     xl: 400,
                   }),
                 })}
@@ -75,9 +75,14 @@ export function BehaviorTableTile({
               </HeaderCell>
               <HeaderCell
                 css={css({
+                  display: asResponsiveArray({
+                    _: 'none',
+                    sm: 'table-cell',
+                    md: 'none',
+                    lg: 'table-cell',
+                  }),
                   width: asResponsiveArray({
                     _: 100,
-                    sm: 100,
                     xl: 150,
                   }),
                 })}
@@ -86,19 +91,24 @@ export function BehaviorTableTile({
               </HeaderCell>
               <HeaderCell
                 css={css({
-                  width: 125,
+                  width: trendColumnWidth,
                 })}
               >
                 {commonText.basisregels.header_trend}
               </HeaderCell>
-            </tr>
+            </Row>
           </thead>
           <tbody>
             {behaviorsTableData.map((behavior) => (
-              <tr key={behavior.id}>
+              <Row key={behavior.id}>
                 <Cell
                   css={css({
-                    minWidth: asResponsiveArray({ _: '60vw', sm: 300 }),
+                    minWidth: asResponsiveArray({
+                      _: '100%',
+                      sm: 300,
+                      md: '100%',
+                      lg: 300,
+                    }),
                   })}
                 >
                   <Box display="flex" mr={2}>
@@ -113,7 +123,16 @@ export function BehaviorTableTile({
                     />
                   </Box>
                 </Cell>
-                <Cell css={css({ minWidth: 200 })}>
+                <Cell
+                  css={css({
+                    minWidth: asResponsiveArray({
+                      _: `calc(100% - ${trendColumnWidth}px)`,
+                      sm: 200,
+                      md: `calc(100% - ${trendColumnWidth}px)`,
+                      lg: 200,
+                    }),
+                  })}
+                >
                   <PercentageBarWithNumber
                     percentage={behavior.compliancePercentage}
                     color={colors.data.cyan}
@@ -123,7 +142,7 @@ export function BehaviorTableTile({
                     color={colors.data.yellow}
                   />
                 </Cell>
-                <Cell css={css({ minWidth: 125 })}>
+                <Cell css={css({ minWidth: trendColumnWidth })}>
                   <Box display="flex" flexDirection="column">
                     <BehaviorTrend
                       trend={behavior.complianceTrend}
@@ -135,7 +154,7 @@ export function BehaviorTableTile({
                     />
                   </Box>
                 </Cell>
-              </tr>
+              </Row>
             ))}
           </tbody>
         </StyledTable>
@@ -143,7 +162,7 @@ export function BehaviorTableTile({
       <Box maxWidth="maxWidthText">
         <Text color="annotation">{annotation}</Text>
       </Box>
-    </Tile>
+    </ChartTile>
   );
 }
 
@@ -170,29 +189,44 @@ function DescriptionWithIcon({
   };
 
   return (
-    <Button onClick={buttonClickHandler}>
-      {splittedWords.map((word, index) => (
-        <InlineText
-          key={index}
-          css={css({
-            whiteSpace: 'pre-wrap',
-            fontFamily: 'body',
-            fontSize: '1rem',
-          })}
-        >
-          {splittedWords.length - 1 === index ? (
-            <InlineText css={css({ display: 'flex', position: 'relative' })}>
-              {word}
-              <Box position="absolute" right={-14} top={0}>
-                <ChevronIcon width="7px" />
-              </Box>
-            </InlineText>
-          ) : (
-            `${word} `
-          )}
-        </InlineText>
-      ))}
-    </Button>
+    <Anchor
+      as="button"
+      underline="hover"
+      color="body"
+      onClick={buttonClickHandler}
+      css={css({ '&:hover': { color: 'blue' } })}
+    >
+      <span
+        css={css({
+          display: 'flex',
+          alignItems: 'center',
+          textAlign: 'left',
+          flexWrap: 'wrap',
+        })}
+      >
+        {splittedWords.map((word, index) => (
+          <InlineText
+            key={index}
+            css={css({
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'body',
+              fontSize: '1rem',
+            })}
+          >
+            {splittedWords.length - 1 === index ? (
+              <InlineText css={css({ display: 'flex', position: 'relative' })}>
+                {word}
+                <Box position="absolute" right={-14} top={0}>
+                  <ChevronIcon width="7px" />
+                </Box>
+              </InlineText>
+            ) : (
+              `${word} `
+            )}
+          </InlineText>
+        ))}
+      </span>
+    </Anchor>
   );
 }
 
@@ -206,15 +240,19 @@ function PercentageBarWithNumber({
   const { formatPercentage } = useIntl();
   return (
     <Box
-      color={color}
       display="flex"
       alignItems="center"
+      spacingHorizontal={2}
       pr={{ _: 2, sm: 2, lg: 4, xl: 5 }}
     >
-      <InlineText fontWeight="bold" color="black" pr={2}>
-        {`${formatPercentage(percentage)}%`}
-      </InlineText>
-      <PercentageBar percentage={percentage} height="8px" />
+      <Box as="span" minWidth={40} textAlign="right">
+        <InlineText fontWeight="bold">
+          {`${formatPercentage(percentage)}%`}
+        </InlineText>
+      </Box>
+      <Box color={color} flexGrow={1}>
+        <PercentageBar percentage={percentage} height="8px" />
+      </Box>
     </Box>
   );
 }
@@ -238,50 +276,41 @@ const StyledTable = styled.table(
   })
 );
 
+const Row = styled.tr(
+  css({
+    display: asResponsiveArray({
+      _: 'flex',
+      sm: 'table-row',
+      md: 'flex',
+      lg: 'table-row',
+    }),
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  })
+);
+
 const HeaderCell = styled.th(
   css({
     textAlign: 'left',
+    fontWeight: 'bold',
+    verticalAlign: 'middle',
   })
 );
 
 const Cell = styled.td(
   css({
-    borderBottom: '1px solid',
-    borderBottomColor: 'lightGray',
+    borderBottom: '1px solid lightGray',
     p: 0,
     py: 2,
-  })
-);
+    verticalAlign: 'middle',
 
-const Button = styled.button(
-  css({
-    appearance: 'none',
-    background: 'unset',
-    border: 0,
-    display: 'flex',
-    alignItems: 'center',
-    textAlign: 'left',
-    cursor: 'pointer',
-    p: 0,
-    m: 0,
-    pr: 3,
-    flexWrap: 'wrap',
-
-    '&:focus': {
-      borderColor: 'lightGray',
-      outline: '2px dotted',
-      outlineColor: 'blue',
-    },
-
-    '&:hover': {
-      span: {
-        color: 'data.primary',
-        textDecoration: 'underline',
-      },
-
-      svg: {
-        color: 'data.primary',
-      },
+    '&:first-child': {
+      borderBottom: asResponsiveArray({
+        _: 'none',
+        sm: '1px solid lightGray',
+        md: 'none',
+        lg: '1px solid lightGray',
+      }),
     },
   })
 );

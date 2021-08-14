@@ -58,8 +58,6 @@ interface HoverState<T> {
 
 type Event = React.TouchEvent<SVGElement> | React.MouseEvent<SVGElement>;
 
-export type HoverHandler = (event: Event, seriesIndex?: number) => void;
-
 export function useHoverState<T extends TimestampedValue>({
   values,
   seriesList,
@@ -327,7 +325,7 @@ export function useHoverState<T extends TimestampedValue>({
             return {
               seriesValue,
               x: xScale(xValue),
-              y: yValue ? yScale(yValue) : 0,
+              y: isPresent(yValue) ? yScale(yValue) : 0,
               color: yValue ? config.color : 'transparent',
               metricProperty: config.metricProperty,
               seriesConfigIndex: index,
@@ -336,14 +334,15 @@ export function useHoverState<T extends TimestampedValue>({
             return {
               seriesValue,
               x: xScale(xValue),
-              y: yValue ? yScale(yValue) : 0,
+              y: isPresent(yValue) ? yScale(yValue) : 0,
               color: findSplitPointForValue(config.splitPoints, yValue).color,
               metricProperty: config.metricProperty,
               seriesConfigIndex: index,
             };
         }
       })
-      .filter(isDefined);
+      .filter(isDefined)
+      .filter((x) => isPresent(x.seriesValue.__value));
 
     /**
      * Point markers on range data are rendered differently, so we split them
@@ -369,17 +368,21 @@ export function useHoverState<T extends TimestampedValue>({
         /**
          * Filter series without Y value on the current valuesIndex
          */
-        if (!isPresent(yValueA) || !isPresent(yValueB)) {
+        if (
+          (!isPresent(yValueA) || !isPresent(yValueB)) &&
+          config.type !== 'gapped-stacked-area'
+        ) {
           return;
         }
 
         switch (config.type) {
           case 'stacked-area':
+          case 'gapped-stacked-area':
             return [
               {
                 seriesValue,
                 x: xScale(xValue),
-                y: yScale(yValueB),
+                y: isPresent(yValueB) ? yScale(yValueB) : 0,
                 color: config.color,
                 metricProperty: config.metricProperty,
                 seriesConfigIndex: index,
@@ -390,7 +393,7 @@ export function useHoverState<T extends TimestampedValue>({
               {
                 seriesValue,
                 x: xScale(xValue),
-                y: yScale(yValueA),
+                y: isPresent(yValueA) ? yScale(yValueA) : 0,
                 color: config.color,
                 metricProperty: config.metricPropertyLow,
                 seriesConfigIndex: index,
@@ -398,7 +401,7 @@ export function useHoverState<T extends TimestampedValue>({
               {
                 seriesValue,
                 x: xScale(xValue),
-                y: yScale(yValueB),
+                y: isPresent(yValueB) ? yScale(yValueB) : 0,
                 color: config.color,
                 metricProperty: config.metricPropertyHigh,
                 seriesConfigIndex: index,
@@ -406,7 +409,12 @@ export function useHoverState<T extends TimestampedValue>({
             ];
         }
       })
-      .filter(isDefined);
+      .filter(isDefined)
+      .filter(
+        (x) =>
+          isPresent(x.seriesValue.__value_a) &&
+          isPresent(x.seriesValue.__value_b)
+      );
 
     /**
      * For nearest point calculation we only need to look at the y component of

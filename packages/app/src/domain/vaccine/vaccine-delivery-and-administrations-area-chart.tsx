@@ -42,7 +42,6 @@ export function VaccineDeliveryAndAdministrationsAreaChart({
       title={siteText.vaccinaties.grafiek.titel}
       description={siteText.vaccinaties.grafiek.omschrijving}
       metadata={{
-        date: firstValue?.date_of_report_unix,
         source: siteText.vaccinaties.bronnen.rivm,
       }}
     >
@@ -61,6 +60,7 @@ export function VaccineDeliveryAndAdministrationsAreaChart({
                 siteText.vaccinaties.data.vaccination_chart.legend.expected,
             },
           ],
+          forcedMaximumValue: (seriesMax) => seriesMax * 1.1,
           timeAnnotations: [
             {
               type: 'divider',
@@ -102,6 +102,7 @@ export function VaccineDeliveryAndAdministrationsAreaChart({
             ),
             shortLabel: productNames[x],
             color: colors.data.vaccines[x],
+            mixBlendMode: 'multiply',
             fillOpacity: 1,
             strokeWidth: 0,
           })),

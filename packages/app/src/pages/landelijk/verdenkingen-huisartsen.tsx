@@ -1,14 +1,14 @@
-import Arts from '~/assets/arts.svg';
+import { ReactComponent as Arts } from '~/assets/arts.svg';
 import { ChartTile } from '~/components/chart-tile';
-import { ContentHeader } from '~/components/content-header';
 import { KpiTile } from '~/components/kpi-tile';
 import { KpiValue } from '~/components/kpi-value';
+import { PageInformationBlock } from '~/components/page-information-block';
 import { TileList } from '~/components/tile-list';
 import { TimeSeriesChart } from '~/components/time-series-chart';
 import { TwoKpiSection } from '~/components/two-kpi-section';
 import { Text } from '~/components/typography';
 import { Layout } from '~/domain/layout/layout';
-import { NationalLayout } from '~/domain/layout/national-layout';
+import { NlLayout } from '~/domain/layout/nl-layout';
 import { useIntl } from '~/intl';
 import {
   createGetStaticProps,
@@ -40,23 +40,23 @@ const SuspectedPatients = (props: StaticProps<typeof getStaticProps>) => {
 
   return (
     <Layout {...metadata} lastGenerated={lastGenerated}>
-      <NationalLayout data={data} lastGenerated={lastGenerated}>
+      <NlLayout data={data} lastGenerated={lastGenerated}>
         <TileList>
-          <ContentHeader
+          <PageInformationBlock
             category={siteText.nationaal_layout.headings.vroege_signalen}
             screenReaderCategory={
               siteText.verdenkingen_huisartsen.titel_sidebar
             }
             title={text.titel}
             icon={<Arts />}
-            subtitle={text.pagina_toelichting}
+            description={text.pagina_toelichting}
             metadata={{
               datumsText: text.datums,
               dateOrRange: lastValue.date_end_unix,
               dateOfInsertionUnix: lastValue.date_of_insertion_unix,
               dataSources: [text.bronnen.nivel],
             }}
-            reference={text.reference}
+            referenceLink={text.reference.href}
           />
 
           <TwoKpiSection>
@@ -115,7 +115,7 @@ const SuspectedPatients = (props: StaticProps<typeof getStaticProps>) => {
             )}
           </ChartTile>
         </TileList>
-      </NationalLayout>
+      </NlLayout>
     </Layout>
   );
 };

@@ -1,9 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
-import Gedrag from '~/assets/gedrag.svg';
-import { ArticleStrip } from '~/components/article-strip';
-import { ArticleSummary } from '~/components/article-teaser';
-import { ContentHeader } from '~/components/content-header';
+import { ReactComponent as Gedrag } from '~/assets/gedrag.svg';
+import { Box } from '~/components/base';
 import { Markdown } from '~/components/markdown';
+import { PageInformationBlock } from '~/components/page-information-block';
 import { Tile } from '~/components/tile';
 import { TileList } from '~/components/tile-list';
 import { TwoKpiSection } from '~/components/two-kpi-section';
@@ -16,9 +15,12 @@ import { MoreInformation } from '~/domain/behavior/components/more-information';
 import { BehaviorIdentifier } from '~/domain/behavior/logic/behavior-types';
 import { useBehaviorLookupKeys } from '~/domain/behavior/logic/use-behavior-lookup-keys';
 import { Layout } from '~/domain/layout/layout';
-import { NationalLayout } from '~/domain/layout/national-layout';
+import { NlLayout } from '~/domain/layout/nl-layout';
 import { useIntl } from '~/intl';
-import { createPageArticlesQuery } from '~/queries/create-page-articles-query';
+import {
+  createPageArticlesQuery,
+  PageArticlesQueryResult,
+} from '~/queries/create-page-articles-query';
 import {
   createGetStaticProps,
   StaticProps,
@@ -37,10 +39,8 @@ export const getStaticProps = createGetStaticProps(
   createGetChoroplethData({
     vr: ({ behavior }) => ({ behavior }),
   }),
-  createGetContent<{
-    articles?: ArticleSummary[];
-  }>(() => {
-    const locale = process.env.NEXT_PUBLIC_LOCALE || 'nl';
+  createGetContent<PageArticlesQueryResult>((context) => {
+    const { locale = 'nl' } = context;
     return createPageArticlesQuery('behaviorPage', locale);
   })
 );
@@ -85,13 +85,13 @@ export default function BehaviorPage(
 
   return (
     <Layout {...metadata} lastGenerated={lastGenerated}>
-      <NationalLayout data={data} lastGenerated={lastGenerated}>
+      <NlLayout data={data} lastGenerated={lastGenerated}>
         <TileList>
-          <ContentHeader
+          <PageInformationBlock
             category={intl.siteText.nationaal_layout.headings.gedrag}
             title={nl_gedrag.pagina.titel}
             icon={<Gedrag />}
-            subtitle={nl_gedrag.pagina.toelichting}
+            description={nl_gedrag.pagina.toelichting}
             metadata={{
               datumsText: nl_gedrag.datums,
               dateOrRange: {
@@ -101,59 +101,63 @@ export default function BehaviorPage(
               dateOfInsertionUnix: behaviorLastValue.date_of_insertion_unix,
               dataSources: [nl_gedrag.bronnen.rivm],
             }}
-            reference={nl_gedrag.reference}
+            referenceLink={nl_gedrag.reference.href}
+            articles={content.articles}
           />
 
           <TwoKpiSection>
             <Tile>
-              <Heading level={3}>{nl_gedrag.onderzoek_uitleg.titel}</Heading>
-              <Text>{nl_gedrag.onderzoek_uitleg.toelichting}</Text>
+              <Box spacing={3}>
+                <Heading level={3}>{nl_gedrag.onderzoek_uitleg.titel}</Heading>
+                <Text>{nl_gedrag.onderzoek_uitleg.toelichting}</Text>
+              </Box>
             </Tile>
+
             <Tile>
-              <Heading level={3}>
-                {nl_gedrag.kpi_recente_inzichten.titel}
-              </Heading>
+              <Box spacing={3}>
+                <Heading level={3}>
+                  {nl_gedrag.kpi_recente_inzichten.titel}
+                </Heading>
 
-              <Markdown
-                content={replaceVariablesInText(
-                  nl_gedrag.kpi_recente_inzichten.tekst,
-                  {
-                    number_of_participants: intl.formatNumber(
-                      behaviorLastValue.number_of_participants
-                    ),
-                    date_start: intl.formatDateFromSeconds(
-                      behaviorLastValue.date_start_unix
-                    ),
-                    date_end: intl.formatDateFromSeconds(
-                      behaviorLastValue.date_end_unix
-                    ),
-
-                    highest_compliance_description:
-                      highestCompliance.description,
-                    highest_compliance_compliance_percentage:
-                      intl.formatPercentage(
-                        highestCompliance.compliancePercentage
+                <Markdown
+                  content={replaceVariablesInText(
+                    nl_gedrag.kpi_recente_inzichten.tekst,
+                    {
+                      number_of_participants: intl.formatNumber(
+                        behaviorLastValue.number_of_participants
                       ),
-                    highest_compliance_support_percentage:
-                      intl.formatPercentage(
-                        highestCompliance.supportPercentage
+                      date_start: intl.formatDateFromSeconds(
+                        behaviorLastValue.date_start_unix
+                      ),
+                      date_end: intl.formatDateFromSeconds(
+                        behaviorLastValue.date_end_unix
                       ),
 
-                    highest_support_description: highestSupport.description,
-                    highest_support_compliance_percentage:
-                      intl.formatPercentage(
-                        highestSupport.compliancePercentage
+                      highest_compliance_description:
+                        highestCompliance.description,
+                      highest_compliance_compliance_percentage:
+                        intl.formatPercentage(
+                          highestCompliance.compliancePercentage
+                        ),
+                      highest_compliance_support_percentage:
+                        intl.formatPercentage(
+                          highestCompliance.supportPercentage
+                        ),
+
+                      highest_support_description: highestSupport.description,
+                      highest_support_compliance_percentage:
+                        intl.formatPercentage(
+                          highestSupport.compliancePercentage
+                        ),
+                      highest_support_support_percentage: intl.formatPercentage(
+                        highestSupport.supportPercentage
                       ),
-                    highest_support_support_percentage: intl.formatPercentage(
-                      highestSupport.supportPercentage
-                    ),
-                  }
-                )}
-              />
+                    }
+                  )}
+                />
+              </Box>
             </Tile>
           </TwoKpiSection>
-
-          <ArticleStrip articles={content.articles} />
 
           <BehaviorTableTile
             title={nl_gedrag.basisregels.title}
@@ -167,6 +171,7 @@ export default function BehaviorPage(
           />
 
           <span ref={scrollToRef} />
+
           <BehaviorLineChartTile
             values={data.behavior.values}
             metadata={{
@@ -206,7 +211,7 @@ export default function BehaviorPage(
 
           <MoreInformation />
         </TileList>
-      </NationalLayout>
+      </NlLayout>
     </Layout>
   );
 }

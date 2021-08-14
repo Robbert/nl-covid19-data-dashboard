@@ -4,7 +4,6 @@ import {
   HighlightTeaserProps,
 } from '~/components/highlight-teaser';
 import { Block, ImageBlock } from '~/types/cms';
-import { useBreakpoints } from '~/utils/use-breakpoints';
 import { ArticleBox } from './article-list';
 
 export interface WeeklyHighlightProps {
@@ -21,42 +20,45 @@ export interface WeeklyHighlightProps {
 interface HighlightsTileProps {
   weeklyHighlight: WeeklyHighlightProps;
   highlights: HighlightTeaserProps[];
+  showWeeklyHighlight: boolean;
 }
 
 export function HighlightsTile(props: HighlightsTileProps) {
-  const { weeklyHighlight, highlights } = props;
-  const breakpoints = useBreakpoints();
+  const { weeklyHighlight, highlights, showWeeklyHighlight } = props;
 
   return (
     <Box
       display="flex"
-      spacingHorizontal={breakpoints.lg}
       flexDirection={{ _: 'column', xs: 'row' }}
       flexWrap="wrap"
-      mr={0}
+      spacing={4}
     >
-      <ArticleBox>
-        <HighlightTeaser
-          cover={weeklyHighlight.cover}
-          href={`/weekberichten/${weeklyHighlight.slug.current}`}
-          title={weeklyHighlight.title}
-          category={weeklyHighlight.category}
-          publicationDate={weeklyHighlight.publicationDate}
-          isWeekly
-          variant="blue"
-        />
-      </ArticleBox>
-      {highlights.map((item, index) => (
-        <ArticleBox key={index}>
+      {showWeeklyHighlight && (
+        <ArticleBox>
           <HighlightTeaser
-            cover={item.cover}
-            href={item.href}
-            label={item.label}
-            title={item.title}
-            category={item.category}
+            cover={weeklyHighlight.cover}
+            href={`/weekberichten/${weeklyHighlight.slug.current}`}
+            title={weeklyHighlight.title}
+            category={weeklyHighlight.category}
+            publicationDate={weeklyHighlight.publicationDate}
+            isWeekly
+            variant="blue"
           />
         </ArticleBox>
-      ))}
+      )}
+      {highlights
+        .map((item, index) => (
+          <ArticleBox key={index}>
+            <HighlightTeaser
+              cover={item.cover}
+              href={item.href}
+              label={item.label}
+              title={item.title}
+              category={item.category}
+            />
+          </ArticleBox>
+        ))
+        .slice(0, showWeeklyHighlight ? 2 : 3)}
     </Box>
   );
 }

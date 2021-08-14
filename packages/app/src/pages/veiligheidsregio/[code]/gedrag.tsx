@@ -1,20 +1,25 @@
+import { NlBehaviorValue } from '@corona-dashboard/common';
 import { useRef, useState } from 'react';
-import Gedrag from '~/assets/gedrag.svg';
-import { ArticleStrip } from '~/components/article-strip';
-import { ArticleSummary } from '~/components/article-teaser';
-import { ContentHeader } from '~/components/content-header';
+import { ReactComponent as Gedrag } from '~/assets/gedrag.svg';
+import { PageInformationBlock } from '~/components/page-information-block';
 import { Tile } from '~/components/tile';
 import { TileList } from '~/components/tile-list';
 import { TwoKpiSection } from '~/components/two-kpi-section';
 import { Heading, InlineText, Text } from '~/components/typography';
-import { BehaviorLineChartTile } from '~/domain/behavior/behavior-line-chart-tile';
+import {
+  BehaviorLineChartTile,
+  getBehaviorChartOptions,
+} from '~/domain/behavior/behavior-line-chart-tile';
 import { BehaviorTableTile } from '~/domain/behavior/behavior-table-tile';
 import { MoreInformation } from '~/domain/behavior/components/more-information';
 import { BehaviorIdentifier } from '~/domain/behavior/logic/behavior-types';
 import { Layout } from '~/domain/layout/layout';
-import { SafetyRegionLayout } from '~/domain/layout/safety-region-layout';
+import { VrLayout } from '~/domain/layout/vr-layout';
 import { useIntl } from '~/intl';
-import { createPageArticlesQuery } from '~/queries/create-page-articles-query';
+import {
+  createPageArticlesQuery,
+  PageArticlesQueryResult,
+} from '~/queries/create-page-articles-query';
 import {
   createGetStaticProps,
   StaticProps,
@@ -30,23 +35,32 @@ export { getStaticPaths } from '~/static-paths/vr';
 
 export const getStaticProps = createGetStaticProps(
   getLastGeneratedDate,
-  selectVrPageMetricData(),
-  createGetContent<{
-    articles?: ArticleSummary[];
-  }>(() => {
-    const locale = process.env.NEXT_PUBLIC_LOCALE || 'nl';
+  createGetContent<PageArticlesQueryResult>((context) => {
+    const { locale = 'nl' } = context;
     return createPageArticlesQuery('behaviorPage', locale);
-  })
+  }),
+  (context) => {
+    const data = selectVrPageMetricData()(context);
+    const chartBehaviorOptions = getBehaviorChartOptions<NlBehaviorValue>(
+      data.selectedVrData.behavior.values[0]
+    );
+
+    return {
+      ...data,
+      chartBehaviorOptions,
+    };
+  }
 );
 
-export default function BehaviorPageSafetyRegion(
+export default function BehaviorPageVr(
   props: StaticProps<typeof getStaticProps>
 ) {
   const {
     lastGenerated,
     content,
     selectedVrData: data,
-    safetyRegionName,
+    vrName,
+    chartBehaviorOptions,
   } = props;
 
   const { siteText, formatDateFromSeconds, formatNumber } = useIntl();
@@ -62,22 +76,20 @@ export default function BehaviorPageSafetyRegion(
   const { regionaal_gedrag } = siteText;
   const behaviorLastValue = data.behavior.last_value;
 
-  const [currentId, setCurrentId] = useState<BehaviorIdentifier>('wash_hands');
+  const [currentId, setCurrentId] = useState<BehaviorIdentifier>(
+    chartBehaviorOptions[0]
+  );
   const scrollToRef = useRef<HTMLDivElement>(null);
 
   return (
     <Layout {...metadata} lastGenerated={lastGenerated}>
-      <SafetyRegionLayout
-        data={data}
-        safetyRegionName={safetyRegionName}
-        lastGenerated={lastGenerated}
-      >
+      <VrLayout data={data} vrName={vrName} lastGenerated={lastGenerated}>
         <TileList>
-          <ContentHeader
+          <PageInformationBlock
             category={siteText.nationaal_layout.headings.gedrag}
             title={regionaal_gedrag.pagina.titel}
             icon={<Gedrag />}
-            subtitle={regionaal_gedrag.pagina.toelichting}
+            description={regionaal_gedrag.pagina.toelichting}
             metadata={{
               datumsText: regionaal_gedrag.datums,
               dateOrRange: {
@@ -87,7 +99,8 @@ export default function BehaviorPageSafetyRegion(
               dateOfInsertionUnix: behaviorLastValue.date_of_insertion_unix,
               dataSources: [regionaal_gedrag.bronnen.rivm],
             }}
-            reference={regionaal_gedrag.reference}
+            referenceLink={regionaal_gedrag.reference.href}
+            articles={content.articles}
           />
 
           <TwoKpiSection>
@@ -126,8 +139,6 @@ export default function BehaviorPageSafetyRegion(
             </Tile>
           </TwoKpiSection>
 
-          <ArticleStrip articles={content.articles} />
-
           <BehaviorTableTile
             title={regionaal_gedrag.basisregels.title}
             description={regionaal_gedrag.basisregels.description}
@@ -155,11 +166,12 @@ export default function BehaviorPageSafetyRegion(
             }}
             currentId={currentId}
             setCurrentId={setCurrentId}
+            behaviorOptions={chartBehaviorOptions}
           />
 
           <MoreInformation />
         </TileList>
-      </SafetyRegionLayout>
+      </VrLayout>
     </Layout>
   );
 }

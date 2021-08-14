@@ -1,15 +1,16 @@
-import { ArticleStrip } from '~/components/article-strip';
-import { ArticleSummary } from '~/components/article-teaser';
-import { ContentHeader } from '~/components/content-header';
+import { ReactComponent as Gedrag } from '~/assets/gedrag.svg';
+import { PageInformationBlock } from '~/components/page-information-block';
 import { TileList } from '~/components/tile-list';
 import { Layout } from '~/domain/layout/layout';
-import { NationalLayout } from '~/domain/layout/national-layout';
-import { SituationIcon } from '~/domain/situations/components/situation-icon';
+import { NlLayout } from '~/domain/layout/nl-layout';
 import { SituationsDataCoverageChoroplethTile } from '~/domain/situations/situations-data-coverage-choropleth-tile';
 import { SituationsOverviewChoroplethTile } from '~/domain/situations/situations-overview-choropleth-tile';
 import { useIntl } from '~/intl';
 import { withFeatureNotFoundPage } from '~/lib/features';
-import { createPageArticlesQuery } from '~/queries/create-page-articles-query';
+import {
+  createPageArticlesQuery,
+  PageArticlesQueryResult,
+} from '~/queries/create-page-articles-query';
 import {
   createGetStaticProps,
   StaticProps,
@@ -20,7 +21,6 @@ import {
   getLastGeneratedDate,
   selectNlPageMetricData,
 } from '~/static-props/get-data';
-
 export const getStaticProps = withFeatureNotFoundPage(
   'situationsPage',
   createGetStaticProps(
@@ -31,10 +31,8 @@ export const getStaticProps = withFeatureNotFoundPage(
         situations,
       }),
     }),
-    createGetContent<{
-      articles?: ArticleSummary[];
-    }>(() => {
-      const locale = process.env.NEXT_PUBLIC_LOCALE || 'nl';
+    createGetContent<PageArticlesQueryResult>((context) => {
+      const { locale = 'nl' } = context;
       return createPageArticlesQuery('situationsPage', locale);
     })
   )
@@ -59,16 +57,16 @@ export default function BrononderzoekPage(
 
   return (
     <Layout {...metadata} lastGenerated={lastGenerated}>
-      <NationalLayout data={data} lastGenerated={lastGenerated}>
+      <NlLayout data={data} lastGenerated={lastGenerated}>
         <TileList>
-          <ContentHeader
+          <PageInformationBlock
             category={intl.siteText.nationaal_layout.headings.besmettingen}
             screenReaderCategory={
               intl.siteText.positief_geteste_personen.titel_sidebar
             }
             title={text.titel}
-            icon={<SituationIcon id="gathering" />}
-            subtitle={text.pagina_toelichting}
+            icon={<Gedrag />}
+            description={text.pagina_toelichting}
             metadata={{
               datumsText: text.datums,
               dateOrRange: {
@@ -78,16 +76,15 @@ export default function BrononderzoekPage(
               dateOfInsertionUnix: singleValue.date_of_insertion_unix,
               dataSources: [text.bronnen.rivm],
             }}
-            reference={text.reference}
+            referenceLink={text.reference.href}
+            articles={content.articles}
           />
-
-          <ArticleStrip articles={content.articles} />
 
           <SituationsDataCoverageChoroplethTile data={choropleth.vr} />
 
           <SituationsOverviewChoroplethTile data={choropleth.vr.situations} />
         </TileList>
-      </NationalLayout>
+      </NlLayout>
     </Layout>
   );
 }

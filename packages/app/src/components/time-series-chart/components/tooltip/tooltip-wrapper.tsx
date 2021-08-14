@@ -1,15 +1,15 @@
 import css from '@styled-system/css';
-import { ReactNode, useRef } from 'react';
+import { ReactNode } from 'react';
 import styled from 'styled-components';
 import { isDefined } from 'ts-is-present';
-import useResizeObserver from 'use-resize-observer';
-import { Heading } from '~/components/typography';
+import { Text } from '~/components/typography';
 import { useBoundingBox } from '~/utils/use-bounding-box';
 import { useIsMounted } from '~/utils/use-is-mounted';
+import { useResizeObserver } from '~/utils/use-resize-observer';
 import { useViewport } from '~/utils/use-viewport';
 import { Bounds, Padding } from '../../logic';
 
-export interface TooltipWrapperProps {
+interface TooltipWrapperProps {
   title?: string;
   children: React.ReactNode;
   left: number;
@@ -37,14 +37,10 @@ export function TooltipWrapper({
 }: TooltipWrapperProps) {
   const viewportSize = useViewport();
   const isMounted = useIsMounted({ delayMs: 10 });
-  const ref = useRef<HTMLDivElement>(null);
-  const { width = 0, height = 0 } = useResizeObserver<HTMLDivElement>({ ref });
+  const [ref, { width = 0, height = 0 }] = useResizeObserver<HTMLDivElement>();
   const [boundingBox, boundingBoxRef] = useBoundingBox<HTMLDivElement>();
 
-  /**
-   * nudge the top to render the tooltip a little bit on top of the chart
-   */
-  const targetY = -height + 8;
+  const targetY = -height;
   const targetX = left + padding.left;
 
   const maxWidth = Math.min(
@@ -156,7 +152,7 @@ interface TooltipContentProps {
   children?: ReactNode;
 }
 
-export function TooltipContent(props: TooltipContentProps) {
+function TooltipContent(props: TooltipContentProps) {
   const { title, onSelect, children } = props;
 
   return (
@@ -182,28 +178,24 @@ function TooltipHeading({ title }: { title: string }) {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
       })}
     >
-      <Heading
-        level={3}
-        m={0}
-        fontSize={1}
-        css={css({ overflow: 'hidden', textOverflow: 'ellipsis' })}
-      >
+      <Text variant="label1" fontWeight="bold">
         {title}
-      </Heading>
+      </Text>
     </div>
   );
 }
 
-export const TooltipChildren = styled.div<{ hasTitle?: boolean }>(
-  ({ hasTitle }) =>
-    css({
-      borderTop: hasTitle ? '1px solid' : '',
-      borderTopColor: hasTitle ? 'border' : '',
-      py: 2,
-      px: 3,
-    })
+const TooltipChildren = styled.div<{ hasTitle?: boolean }>(({ hasTitle }) =>
+  css({
+    borderTop: hasTitle ? '1px solid' : '',
+    borderTopColor: hasTitle ? 'border' : '',
+    py: 2,
+    px: 3,
+  })
 );
 
 const StyledTooltipContent = styled.div((x) =>

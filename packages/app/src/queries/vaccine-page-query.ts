@@ -1,15 +1,8 @@
-export function getVaccinePageQuery() {
-  //@TODO We need to switch this from process.env to context as soon as we use i18n routing
-  // const { locale } = context;
-  const locale = process.env.NEXT_PUBLIC_LOCALE;
-
+export function getVaccinePageQuery(locale: string) {
   return `
   *[_type=='vaccinationsPage']{
-    "pageInfo": {
-      "title": pageInfo.title.${locale},
-      "description": pageInfo.description.${locale},
-    },
-    "pageLinks": [...pageLinks[]{
+    "pageDescription": pageDescription.${locale},
+    "usefulLinks": [...usefulLinks[]{
       "title": title.${locale},
       "category": category.${locale},
       "href": href,

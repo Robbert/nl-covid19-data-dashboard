@@ -1,18 +1,26 @@
 import { DifferenceDecimal, DifferenceInteger } from '@corona-dashboard/common';
-import IconGelijk from '~/assets/gelijk.svg';
-import IconUp from '~/assets/pijl-omhoog.svg';
-import IconDown from '~/assets/pijl-omlaag.svg';
+import { ReactComponent as IconGelijk } from '~/assets/gelijk.svg';
+import { ReactComponent as IconUp } from '~/assets/pijl-omhoog.svg';
+import { ReactComponent as IconDown } from '~/assets/pijl-omlaag.svg';
 import { InlineText } from '~/components/typography';
 import { useIntl } from '~/intl';
 import { Container, IconContainer } from './containers';
 
 export function TileAverageDifference({
   value,
+  isPercentage,
 }: {
   value: DifferenceDecimal | DifferenceInteger;
+  isPercentage?: boolean;
 }) {
   const { difference, old_value } = value;
   const { siteText, formatNumber } = useIntl();
+
+  const oldValue = (
+    <InlineText fontWeight="bold">{` (${formatNumber(old_value)}${
+      isPercentage ? '%' : ''
+    })`}</InlineText>
+  );
 
   if (difference > 0)
     return (
@@ -25,9 +33,7 @@ export function TileAverageDifference({
         </InlineText>
         <InlineText>
           {siteText.toe_en_afname.zeven_daags_gemiddelde}
-          <InlineText fontWeight="bold">{` (${formatNumber(
-            old_value
-          )})`}</InlineText>
+          {oldValue}
         </InlineText>
       </Container>
     );
@@ -43,9 +49,7 @@ export function TileAverageDifference({
         </InlineText>
         <InlineText>
           {siteText.toe_en_afname.zeven_daags_gemiddelde}
-          <InlineText fontWeight="bold">{` (${formatNumber(
-            old_value
-          )})`}</InlineText>
+          {oldValue}
         </InlineText>
       </Container>
     );
@@ -60,9 +64,7 @@ export function TileAverageDifference({
       </InlineText>
       <InlineText>
         {siteText.toe_en_afname.zeven_daags_gemiddelde}
-        <InlineText fontWeight="bold">{` (${formatNumber(
-          old_value
-        )})`}</InlineText>
+        {oldValue}
       </InlineText>
     </Container>
   );

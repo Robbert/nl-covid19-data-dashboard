@@ -1,18 +1,19 @@
 import { NlTestedPerAgeGroupValue } from '@corona-dashboard/common';
-import { AccessibilityDefinition } from '~/utils/use-accessibility-annotations';
+import { ErrorBoundary } from '~/components/error-boundary';
 import {
   InteractiveLegend,
   SelectOption,
 } from '~/components/interactive-legend';
 import { Legend, LegendItem } from '~/components/legend';
+import { Spacer } from '~/components/base';
 import { TimeSeriesChart } from '~/components/time-series-chart';
 import { SeriesIcon } from '~/components/time-series-chart/components/series-icon';
 import { TooltipSeriesList } from '~/components/time-series-chart/components/tooltip/tooltip-series-list';
-
 import { LineSeriesDefinition } from '~/components/time-series-chart/logic';
 import { useIntl } from '~/intl';
 import { colors } from '~/style/theme';
 import { getBoundaryDateStartUnix } from '~/utils/get-trailing-date-range';
+import { AccessibilityDefinition } from '~/utils/use-accessibility-annotations';
 import { useBreakpoints } from '~/utils/use-breakpoints';
 import { useList } from '~/utils/use-list';
 import { BASE_SERIES_CONFIG } from './series-config';
@@ -72,7 +73,6 @@ export function InfectedPerAgeGroup({
   );
 
   /* Static legend contains always enabled items and the under reported item */
-  /* Static legend contains always enabled items and the under reported item */
   const staticLegendItems = seriesConfig
     .filter((item) => alwayEnabled.includes(item.metricProperty))
     .map<LegendItem>((item) => ({
@@ -92,7 +92,7 @@ export function InfectedPerAgeGroup({
   const hasTwoColumns = list.length === 0 || list.length > 4;
 
   return (
-    <>
+    <ErrorBoundary>
       <InteractiveLegend
         helpText={text.legend_help_text}
         selectOptions={interactiveLegendOptions}
@@ -100,6 +100,7 @@ export function InfectedPerAgeGroup({
         onToggleItem={toggle}
         onReset={clear}
       />
+      <Spacer mb={2} />
       <TimeSeriesChart
         accessibility={accessibility}
         values={values}
@@ -111,6 +112,7 @@ export function InfectedPerAgeGroup({
           <TooltipSeriesList data={data} hasTwoColumns={hasTwoColumns} />
         )}
         dataOptions={{
+          valueAnnotation: text.value_annotation,
           timespanAnnotations: [
             {
               start: underReportedDateStart,
@@ -122,6 +124,6 @@ export function InfectedPerAgeGroup({
         }}
       />
       <Legend items={staticLegendItems} />
-    </>
+    </ErrorBoundary>
   );
 }

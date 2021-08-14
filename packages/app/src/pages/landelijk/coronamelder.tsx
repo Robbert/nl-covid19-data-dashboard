@@ -1,18 +1,18 @@
 import { css } from '@styled-system/css';
 import styled from 'styled-components';
-import ExternalLinkIcon from '~/assets/external-link.svg';
-import Phone from '~/assets/phone.svg';
+import { ReactComponent as ExternalLinkIcon } from '~/assets/external-link.svg';
+import { ReactComponent as Phone } from '~/assets/phone.svg';
 import { ChartTile } from '~/components/chart-tile';
-import { ContentHeader } from '~/components/content-header';
 import { KpiTile } from '~/components/kpi-tile';
 import { KpiValue } from '~/components/kpi-value';
+import { PageInformationBlock } from '~/components/page-information-block';
 import { Tile } from '~/components/tile';
 import { TileList } from '~/components/tile-list';
 import { TimeSeriesChart } from '~/components/time-series-chart';
 import { TwoKpiSection } from '~/components/two-kpi-section';
 import { Heading, Text } from '~/components/typography';
 import { Layout } from '~/domain/layout/layout';
-import { NationalLayout } from '~/domain/layout/national-layout';
+import { NlLayout } from '~/domain/layout/nl-layout';
 import { useIntl } from '~/intl';
 import {
   createGetStaticProps,
@@ -50,20 +50,20 @@ const CoronamelderPage = (props: StaticProps<typeof getStaticProps>) => {
 
   return (
     <Layout {...metadata} lastGenerated={lastGenerated}>
-      <NationalLayout data={data} lastGenerated={lastGenerated}>
+      <NlLayout data={data} lastGenerated={lastGenerated}>
         <TileList>
-          <ContentHeader
+          <PageInformationBlock
             category={corona_melder_app.header.category}
             title={corona_melder_app.header.title}
             icon={<Phone />}
-            subtitle={corona_melder_app.header.description}
+            description={corona_melder_app.header.description}
             metadata={{
               datumsText: corona_melder_app.header.datums,
               dateOrRange: warningLastValue.date_unix,
               dateOfInsertionUnix: warningLastValue.date_of_insertion_unix,
               dataSources: [corona_melder_app.header.bronnen.rivm],
             }}
-            reference={corona_melder_app.header.reference}
+            referenceLink={corona_melder_app.header.reference.href}
           />
 
           <TwoKpiSection>
@@ -151,7 +151,7 @@ const CoronamelderPage = (props: StaticProps<typeof getStaticProps>) => {
             )}
           </ChartTile>
         </TileList>
-      </NationalLayout>
+      </NlLayout>
     </Layout>
   );
 };

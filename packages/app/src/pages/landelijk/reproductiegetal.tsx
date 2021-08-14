@@ -1,18 +1,19 @@
 import { getLastFilledValue } from '@corona-dashboard/common';
-import Repro from '~/assets/reproductiegetal.svg';
-import { ArticleStrip } from '~/components/article-strip';
-import { ArticleSummary } from '~/components/article-teaser';
-import { ContentHeader } from '~/components/content-header';
+import { ReactComponent as Repro } from '~/assets/reproductiegetal.svg';
 import { KpiWithIllustrationTile } from '~/components/kpi-with-illustration-tile';
 import { PageBarScale } from '~/components/page-barscale';
+import { PageInformationBlock } from '~/components/page-information-block';
 import { TileList } from '~/components/tile-list';
 import { TwoKpiSection } from '~/components/two-kpi-section';
 import { Text } from '~/components/typography';
 import { Layout } from '~/domain/layout/layout';
-import { NationalLayout } from '~/domain/layout/national-layout';
+import { NlLayout } from '~/domain/layout/nl-layout';
 import { ReproductionChartTile } from '~/domain/tested/reproduction-chart-tile';
 import { useIntl } from '~/intl';
-import { createPageArticlesQuery } from '~/queries/create-page-articles-query';
+import {
+  createPageArticlesQuery,
+  PageArticlesQueryResult,
+} from '~/queries/create-page-articles-query';
 import {
   createGetStaticProps,
   StaticProps,
@@ -26,10 +27,8 @@ import {
 export const getStaticProps = createGetStaticProps(
   getLastGeneratedDate,
   selectNlPageMetricData(),
-  createGetContent<{
-    articles?: ArticleSummary[];
-  }>(() => {
-    const locale = process.env.NEXT_PUBLIC_LOCALE || 'nl';
+  createGetContent<PageArticlesQueryResult>((context) => {
+    const { locale = 'nl' } = context;
     return createPageArticlesQuery('reproductionPage', locale);
   })
 );
@@ -50,24 +49,23 @@ const ReproductionIndex = (props: StaticProps<typeof getStaticProps>) => {
 
   return (
     <Layout {...metadata} lastGenerated={lastGenerated}>
-      <NationalLayout data={data} lastGenerated={lastGenerated}>
+      <NlLayout data={data} lastGenerated={lastGenerated}>
         <TileList>
-          <ContentHeader
+          <PageInformationBlock
             category={siteText.nationaal_layout.headings.besmettingen}
             screenReaderCategory={siteText.reproductiegetal.titel_sidebar}
             title={text.titel}
             icon={<Repro />}
-            subtitle={text.pagina_toelichting}
+            description={text.pagina_toelichting}
             metadata={{
               datumsText: text.datums,
               dateOrRange: lastFilledValue.date_unix,
               dateOfInsertionUnix: lastFilledValue.date_of_insertion_unix,
               dataSources: [text.bronnen.rivm],
             }}
-            reference={text.reference}
+            referenceLink={text.reference.href}
+            articles={content.articles}
           />
-
-          <ArticleStrip articles={content.articles} />
 
           <TwoKpiSection>
             <KpiWithIllustrationTile
@@ -75,7 +73,7 @@ const ReproductionIndex = (props: StaticProps<typeof getStaticProps>) => {
               metadata={{
                 date: lastFilledValue.date_unix,
                 source: text.bronnen.rivm,
-                obtained: lastFilledValue.date_of_insertion_unix,
+                obtainedAt: lastFilledValue.date_of_insertion_unix,
               }}
               illustration={{
                 image: '/images/reproductie-explainer.svg',
@@ -98,7 +96,7 @@ const ReproductionIndex = (props: StaticProps<typeof getStaticProps>) => {
 
           <ReproductionChartTile data={data.reproduction} />
         </TileList>
-      </NationalLayout>
+      </NlLayout>
     </Layout>
   );
 };

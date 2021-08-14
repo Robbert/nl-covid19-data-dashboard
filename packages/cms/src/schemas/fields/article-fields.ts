@@ -41,12 +41,32 @@ export const ARTICLE_FIELDS = [
     validation: (rule: Rule) => rule.required(),
   },
   {
+    title: 'Categorieën instellen',
+    name: 'categories',
+    type: 'array',
+    of: [{ type: 'string' }],
+    options: {
+      layout: 'grid',
+      list: [
+        { title: 'Vaccinaties', value: 'vaccinaties' },
+        { title: 'Infecties', value: 'infecties' },
+        { title: 'Sterfte', value: 'sterfte' },
+        { title: 'Ziekenhuizen', value: 'ziekenhuizen' },
+        { title: 'Kwetsbare groepen', value: 'kwetsbare_groepen' },
+        { title: 'Vroege indicatoren', value: 'vroege_indicatoren' },
+        { title: 'Gedrag', value: 'gedrag' },
+      ],
+    },
+    // validation: (rule: Rule) => rule.required().min(1),
+  },
+  {
     title: 'Samenvatting',
     description:
       'Dit is een korte samenvatting van het artikel die getoond wordt in de artikelblokken op de overzichtspagina.',
     name: 'summary',
     type: 'localeText',
-    validation: localeStringValidation((rule) => rule.required().max(120)),
+    // @Todo Align with content team about migrating content, and then enforce max length of 120.
+    validation: localeValidation((rule) => rule.required()),
   },
   {
     title: 'Intro',

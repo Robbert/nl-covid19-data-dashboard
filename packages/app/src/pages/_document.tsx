@@ -6,8 +6,7 @@ import Document, {
   NextScript,
 } from 'next/document';
 import { ServerStyleSheet } from 'styled-components';
-
-const locale = process.env.NEXT_PUBLIC_LOCALE || 'nl';
+import xss from 'xss';
 
 class MyDocument extends Document {
   static async getInitialProps(ctx: DocumentContext) {
@@ -42,7 +41,7 @@ class MyDocument extends Document {
 
   render() {
     return (
-      <Html lang={locale} className="has-no-js">
+      <Html className="has-no-js">
         <Head>
           <script src="/init.js" />
           <Fonts />
@@ -71,7 +70,8 @@ function Fonts() {
   return (
     <style
       dangerouslySetInnerHTML={{
-        __html: `
+        __html: xss(
+          `
 @font-face {
   font-family: 'RO Sans';
   font-weight: normal;
@@ -98,7 +98,8 @@ function Fonts() {
     url('/webfonts/RO-SansWebText-Bold.woff') format('woff');
   font-display: swap;
 }
-      `.trim(),
+      `.trim()
+        ),
       }}
     />
   );

@@ -1,23 +1,31 @@
 import css from '@styled-system/css';
 import { ReactNode } from 'react';
 import styled from 'styled-components';
+import { ReactComponent as CheckedIcon } from '~/assets/checked.svg';
+import { ReactComponent as UncheckedIcon } from '~/assets/unchecked.svg';
+import { Box } from '~/components/base';
 import { Text } from '~/components/typography';
+import { Flag } from '~/domain/international/flag';
 import { useIntl } from '~/intl';
 import { useHotkey } from '~/utils/hotkey/use-hotkey';
 import { replaceVariablesInText } from '~/utils/replace-variables-in-text';
 import { useSearchContext } from './context';
-import CheckedIcon from '~/assets/checked.svg';
-import UncheckedIcon from '~/assets/unchecked.svg';
 
 export function SelectCountriesResults() {
-  const { id, hits, setHasHitFocus, onToggleCountry, getOptionProps, limit } =
-    useSearchContext();
+  const {
+    id,
+    hits,
+    setHasHitFocus,
+    onToggleCountry,
+    getOptionProps,
+    limit,
+    selectedCount,
+  } = useSearchContext();
 
   const { formatNumber, siteText } = useIntl();
 
   useHotkey('esc', () => setHasHitFocus(false), { preventDefault: false });
 
-  const selectedCount = hits.filter((x) => x.data.isSelected).length;
   const isLimitReached = selectedCount >= limit;
 
   return (
@@ -37,9 +45,12 @@ export function SelectCountriesResults() {
                   onClick={() => onToggleCountry(x.data)}
                   isLimitReached={isLimitReached}
                 >
-                  <span css={css({ flex: '0 0 24px' })}>
+                  <span css={css({ flex: '0 0 24px', mt: 1 })}>
                     {x.data.isSelected ? <CheckedIcon /> : <UncheckedIcon />}
                   </span>
+                  <Box mr={2}>
+                    <Flag countryCode={x.id} />
+                  </Box>
                   <span
                     css={css({
                       color: 'black',
@@ -50,7 +61,7 @@ export function SelectCountriesResults() {
                     {x.data.name}
                   </span>
                   <span css={css({ flex: '0 0 1rem' })}>
-                    {formatNumber(x.data.lastValue)}
+                    {formatNumber(x.data.lastValue, 1)}
                   </span>
                 </Hit>
               </li>
@@ -58,8 +69,12 @@ export function SelectCountriesResults() {
           </StyledHitList>
         ) : (
           <StyledNoHits>
-            <Text>{siteText.select_countries.no_countries_found}</Text>
-            <Text>{siteText.select_countries.no_countries_found_hint}</Text>
+            <Text variant="label1">
+              {siteText.select_countries.no_countries_found}
+            </Text>
+            <Text variant="label1">
+              {siteText.select_countries.no_countries_found_hint}
+            </Text>
           </StyledNoHits>
         )}
       </StyledCountriesList>
@@ -96,7 +111,7 @@ const StyledNoHits = styled.div(
   css({
     color: 'gray',
     textAlign: 'center',
-    p: 3,
+    p: 4,
   })
 );
 
@@ -147,6 +162,7 @@ const StyledHit = styled.button<{
     px: 3,
     py: 2,
     display: 'flex',
+    alignItems: 'center',
     textDecoration: 'none',
     color: 'annotation',
     width: '100%',

@@ -1,37 +1,29 @@
-import css from '@styled-system/css';
 import { Box } from '~/components/base';
 import { PercentageBar } from '~/components/percentage-bar';
 import { InlineText } from '~/components/typography';
-import { useIntl } from '~/intl';
 
 export function PercentageBarWithNumber({
   percentage,
   color,
+  formatValue,
 }: {
   percentage: number;
   color: string;
+  formatValue: (value: number) => string;
 }) {
-  const { formatPercentage } = useIntl();
   return (
     <Box
-      color={color}
       display="flex"
       alignItems="center"
       pr={{ _: 0, sm: 2, lg: 4, xl: 5 }}
+      spacingHorizontal={2}
     >
-      <InlineText
-        fontWeight="bold"
-        color="black"
-        textAlign="right"
-        css={css({ minWidth: 40 })}
-        mr={2}
-      >
-        {`${formatPercentage(percentage, {
-          minimumFractionDigits: 1,
-          maximumFractionDigits: 1,
-        })}%`}
-      </InlineText>
-      <PercentageBar percentage={percentage} height="8px" />
+      <Box as="span" minWidth={40} textAlign="right">
+        <InlineText fontWeight="bold">{formatValue(percentage)}%</InlineText>
+      </Box>
+      <Box color={color} flexGrow={1}>
+        <PercentageBar percentage={percentage} height="8px" />
+      </Box>
     </Box>
   );
 }

@@ -1,28 +1,25 @@
-import {
-  VrCollectionDisabilityCare,
-  VrProperties,
-} from '@corona-dashboard/common';
-import CoronaVirus from '~/assets/coronavirus.svg';
-import Gehandicaptenzorg from '~/assets/gehandicapte-zorg.svg';
-import Locatie from '~/assets/locaties.svg';
-import { ArticleStrip } from '~/components/article-strip';
-import { ArticleSummary } from '~/components/article-teaser';
+import { ReactComponent as CoronaVirus } from '~/assets/coronavirus.svg';
+import { ReactComponent as Gehandicaptenzorg } from '~/assets/gehandicapte-zorg.svg';
+import { ReactComponent as Locatie } from '~/assets/locaties.svg';
+import { Spacer } from '~/components/base';
 import { ChartTile } from '~/components/chart-tile';
+import { Choropleth } from '~/components/choropleth';
 import { ChoroplethTile } from '~/components/choropleth-tile';
-import { regionThresholds } from '~/components/choropleth/region-thresholds';
-import { SafetyRegionChoropleth } from '~/components/choropleth/safety-region-choropleth';
-import { DisablityInfectedLocationsRegionalTooltip } from '~/components/choropleth/tooltips/region/disability-infected-locations-regional-tooltip';
-import { ContentHeader } from '~/components/content-header';
+import { thresholds } from '~/components/choropleth/logic/thresholds';
 import { KpiTile } from '~/components/kpi-tile';
 import { KpiValue } from '~/components/kpi-value';
+import { PageInformationBlock } from '~/components/page-information-block';
 import { TileList } from '~/components/tile-list';
 import { TimeSeriesChart } from '~/components/time-series-chart';
 import { TwoKpiSection } from '~/components/two-kpi-section';
 import { Text } from '~/components/typography';
 import { Layout } from '~/domain/layout/layout';
-import { NationalLayout } from '~/domain/layout/national-layout';
+import { NlLayout } from '~/domain/layout/nl-layout';
 import { useIntl } from '~/intl';
-import { createPageArticlesQuery } from '~/queries/create-page-articles-query';
+import {
+  createPageArticlesQuery,
+  PageArticlesQueryResult,
+} from '~/queries/create-page-articles-query';
 import {
   createGetStaticProps,
   StaticProps,
@@ -43,10 +40,8 @@ export const getStaticProps = createGetStaticProps(
   createGetChoroplethData({
     vr: ({ disability_care }) => ({ disability_care }),
   }),
-  createGetContent<{
-    articles?: ArticleSummary[];
-  }>(() => {
-    const locale = process.env.NEXT_PUBLIC_LOCALE || 'nl';
+  createGetContent<PageArticlesQueryResult>((context) => {
+    const { locale = 'nl' } = context;
     return createPageArticlesQuery('disabilityCarePage', locale);
   })
 );
@@ -72,26 +67,25 @@ const DisabilityCare = (props: StaticProps<typeof getStaticProps>) => {
 
   return (
     <Layout {...metadata} lastGenerated={lastGenerated}>
-      <NationalLayout data={data} lastGenerated={lastGenerated}>
+      <NlLayout data={data} lastGenerated={lastGenerated}>
         <TileList>
-          <ContentHeader
+          <PageInformationBlock
             category={siteText.nationaal_layout.headings.kwetsbare_groepen}
             screenReaderCategory={
               siteText.verpleeghuis_positief_geteste_personen.titel_sidebar
             }
             title={positiveTestedPeopleText.titel}
             icon={<Gehandicaptenzorg />}
-            subtitle={positiveTestedPeopleText.pagina_toelichting}
+            description={positiveTestedPeopleText.pagina_toelichting}
             metadata={{
               datumsText: positiveTestedPeopleText.datums,
               dateOrRange: lastValue.date_unix,
               dateOfInsertionUnix: lastValue.date_of_insertion_unix,
               dataSources: [positiveTestedPeopleText.bronnen.rivm],
             }}
-            reference={positiveTestedPeopleText.reference}
+            referenceLink={positiveTestedPeopleText.reference.href}
+            articles={content.articles}
           />
-
-          {content.articles && <ArticleStrip articles={content.articles} />}
 
           <TwoKpiSection>
             <KpiTile
@@ -161,19 +155,20 @@ const DisabilityCare = (props: StaticProps<typeof getStaticProps>) => {
             )}
           </ChartTile>
 
-          <ContentHeader
+          <Spacer pb={3} />
+
+          <PageInformationBlock
             id="besmette-locaties"
-            skipLinkAnchor={true}
             title={infectedLocationsText.titel}
             icon={<Locatie />}
-            subtitle={infectedLocationsText.pagina_toelichting}
+            description={infectedLocationsText.pagina_toelichting}
             metadata={{
               datumsText: infectedLocationsText.datums,
               dateOrRange: lastValue.date_unix,
               dateOfInsertionUnix: lastValue.date_of_insertion_unix,
               dataSources: [infectedLocationsText.bronnen.rivm],
             }}
-            reference={infectedLocationsText.reference}
+            referenceLink={infectedLocationsText.reference.href}
           />
 
           <TwoKpiSection>
@@ -218,24 +213,22 @@ const DisabilityCare = (props: StaticProps<typeof getStaticProps>) => {
               source: infectedLocationsText.bronnen.rivm,
             }}
             legend={{
-              thresholds:
-                regionThresholds.nursing_home.infected_locations_percentage,
+              thresholds: thresholds.vr.infected_locations_percentage,
               title: infectedLocationsText.chloropleth_legenda.titel,
             }}
           >
-            <SafetyRegionChoropleth
+            <Choropleth
+              map="vr"
               accessibility={{
                 key: 'disability_care_infected_people_choropleth',
               }}
-              data={choropleth.vr}
-              getLink={reverseRouter.vr.gehandicaptenzorg}
-              metricName="disability_care"
-              metricProperty="infected_locations_percentage"
-              tooltipContent={(
-                context: VrProperties & VrCollectionDisabilityCare
-              ) => (
-                <DisablityInfectedLocationsRegionalTooltip context={context} />
-              )}
+              data={choropleth.vr.disability_care}
+              dataConfig={{
+                metricProperty: 'infected_locations_percentage',
+              }}
+              dataOptions={{
+                getLink: reverseRouter.vr.gehandicaptenzorg,
+              }}
             />
           </ChoroplethTile>
 
@@ -266,19 +259,20 @@ const DisabilityCare = (props: StaticProps<typeof getStaticProps>) => {
             )}
           </ChartTile>
 
-          <ContentHeader
+          <Spacer pb={3} />
+
+          <PageInformationBlock
             id="sterfte"
-            skipLinkAnchor={true}
             title={locationDeaths.titel}
             icon={<CoronaVirus />}
-            subtitle={locationDeaths.pagina_toelichting}
+            description={locationDeaths.pagina_toelichting}
             metadata={{
               datumsText: locationDeaths.datums,
               dateOrRange: lastValue.date_unix,
               dateOfInsertionUnix: lastValue.date_of_insertion_unix,
               dataSources: [locationDeaths.bronnen.rivm],
             }}
-            reference={locationDeaths.reference}
+            referenceLink={locationDeaths.reference.href}
           />
 
           <TwoKpiSection>
@@ -344,7 +338,7 @@ const DisabilityCare = (props: StaticProps<typeof getStaticProps>) => {
             )}
           </ChartTile>
         </TileList>
-      </NationalLayout>
+      </NlLayout>
     </Layout>
   );
 };
